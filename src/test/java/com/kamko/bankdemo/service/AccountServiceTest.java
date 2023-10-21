@@ -89,10 +89,14 @@ class AccountServiceTest {
         var wrongId = 10L;
         var wrongDepositRequest = new DepositRequest(wrongId, BigDecimal.TEN);
         var wrongWithdrawRequest = new WithdrawRequest(wrongId, BigDecimal.TEN, "1111");
+        var wrongTransferRequest = new TransferRequest(wrongId, 2L, BigDecimal.TEN, "1111");
+        var anotherWrongTransferRequest = new TransferRequest(1L, wrongId, BigDecimal.TEN, "1111");
         assertAll(
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.findOne(wrongId)),
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.deposit(wrongDepositRequest)),
-                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(wrongWithdrawRequest))
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(wrongWithdrawRequest)),
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(wrongTransferRequest)),
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(anotherWrongTransferRequest))
         );
     }
 
@@ -106,15 +110,26 @@ class AccountServiceTest {
     @Test
     void notEnoughFundsException() {
         var expectedException = NotEnoughFundsException.class;
-        var withdrawRequest = new WithdrawRequest(1L, BigDecimal.valueOf(10_000), "1111");
-        assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest));
+        var amount = BigDecimal.valueOf(10_000);
+        var withdrawRequest = new WithdrawRequest(1L, amount, "1111");
+        var transferRequest = new TransferRequest(1L, 2L, amount, "1111");
+        assertAll(
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest)),
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(transferRequest))
+        );
+
     }
 
     @Test
     void wrongPinException() {
         var expectedException = WrongPinException.class;
-        var withdrawRequest = new WithdrawRequest(1L, BigDecimal.TEN, "1112");
-        assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest));
+        var wrongPin = "1112";
+        var withdrawRequest = new WithdrawRequest(1L, BigDecimal.TEN, wrongPin);
+        var transferRequest = new TransferRequest(1L, 2L, BigDecimal.TEN, wrongPin);
+        assertAll(
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest)),
+                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(transferRequest))
+        );
     }
 
 }
