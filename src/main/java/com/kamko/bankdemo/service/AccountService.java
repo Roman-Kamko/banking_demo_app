@@ -1,18 +1,16 @@
 package com.kamko.bankdemo.service;
 
-import com.kamko.bankdemo.dto.account.CreateAccountDto;
-import com.kamko.bankdemo.dto.account.CreatedAccountDto;
-import com.kamko.bankdemo.dto.account.NameBalanceAccountDto;
-import com.kamko.bankdemo.dto.request.DepositRequest;
-import com.kamko.bankdemo.dto.request.TransferRequest;
-import com.kamko.bankdemo.dto.request.WithdrawRequest;
+import com.kamko.bankdemo.dto.account.AccountIdNameBalanceDto;
+import com.kamko.bankdemo.dto.account.AccountNameBalanceDto;
+import com.kamko.bankdemo.dto.account.NewAccountDto;
+import com.kamko.bankdemo.dto.account_operation.DepositRequest;
+import com.kamko.bankdemo.dto.account_operation.TransferRequest;
+import com.kamko.bankdemo.dto.account_operation.WithdrawRequest;
 import com.kamko.bankdemo.entity.Account;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
-import com.kamko.bankdemo.exception.EntityCreateException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
 import com.kamko.bankdemo.mapper.AccountMapper;
-import com.kamko.bankdemo.mapper.OperationMapper;
 import com.kamko.bankdemo.repo.AccountRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,45 +23,43 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.math.RoundingMode.HALF_UP;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AccountService {
 
     private final AccountRepo accountRepo;
-    private final SecurityService securityService;
-    private final TransactionService transactionService;
     private final AccountMapper accountMapper;
-    private final OperationMapper operationMapper;
+    private final SecurityService securityService;
+    private final TransactionLogService transactionService;
     private static final int ROUNDING_SCALE = 2;
 
-    public CreatedAccountDto findOne(Long id) {
+    public AccountIdNameBalanceDto findOne(Long id) {
         return accountRepo.findById(id)
-                .map(accountMapper::toCreatedDto)
+                .map(accountMapper::toIdNameBalance)
                 .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
-    public Page<NameBalanceAccountDto> findAll(Integer pageNum, Integer pageSize) {
+    public Page<AccountNameBalanceDto> findAll(Integer pageNum, Integer pageSize) {
         return accountRepo.findAll(PageRequest.of(pageNum, pageSize))
-                .map(accountMapper::toNameBalanceDto);
+                .map(accountMapper::toNameBalance);
     }
 
     @Transactional
-    public CreatedAccountDto create(CreateAccountDto accountDto) {
-        return Optional.of(accountDto)
+    public AccountIdNameBalanceDto create(NewAccountDto newAccountDto) {
+        return Optional.of(newAccountDto)
                 .map(accountMapper::toEntity)
                 .map(account -> {
-                    account.setPin(securityService.encode(accountDto.pin()));
+                    account.setPin(securityService.encode(newAccountDto.pin()));
                     account.setBalance(BigDecimal.ZERO);
                     return accountRepo.save(account);
                 })
-                .map(accountMapper::toCreatedDto)
-                .orElseThrow(EntityCreateException::new);
+                .map(accountMapper::toIdNameBalance)
+                .orElseThrow();
     }
 
     @Transactional
-    public CreatedAccountDto deposit(DepositRequest depositRequest) {
+    public AccountIdNameBalanceDto deposit(DepositRequest depositRequest) {
         var accountId = depositRequest.toAccountId();
         var amount = depositRequest.amount();
         return accountRepo.findById(accountId)
@@ -73,13 +69,13 @@ public class AccountService {
                 })
                 .map(account -> {
                     transactionService.logDeposit(account, amount);
-                    return accountMapper.toCreatedDto(account);
+                    return accountMapper.toIdNameBalance(account);
                 })
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
     }
 
     @Transactional
-    public CreatedAccountDto withdraw(WithdrawRequest withdrawRequest) {
+    public AccountIdNameBalanceDto withdraw(WithdrawRequest withdrawRequest) {
         var accountId = withdrawRequest.fromAccountId();
         var amount = withdrawRequest.amount();
         return accountRepo.findById(accountId)
@@ -90,20 +86,20 @@ public class AccountService {
                 })
                 .map(account -> {
                     transactionService.logWithdraw(account, amount);
-                    return accountMapper.toCreatedDto(account);
+                    return accountMapper.toIdNameBalance(account);
                 })
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
     }
 
     @Transactional
-    public CreatedAccountDto transfer(TransferRequest transferRequest) {
+    public void transfer(TransferRequest transferRequest) {
         var fromAccountId = transferRequest.fromAccountId();
         var toAccountId = transferRequest.toAccountId();
         if (Objects.equals(fromAccountId, toAccountId)) {
             throw new IdMatchingException(fromAccountId);
         }
-        deposit(operationMapper.toDeposit(transferRequest));
-        return withdraw(operationMapper.toWithdraw(transferRequest));
+        withdraw(accountMapper.toWithdraw(transferRequest));
+        deposit(accountMapper.toDeposit(transferRequest));
     }
 
     private BigDecimal increaseBalance(Account account, BigDecimal amount) {

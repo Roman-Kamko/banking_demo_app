@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
 @Schema(name = "Created account", description = "Use to see base info about account")
-public record CreatedAccountDto(
+public record AccountIdNameBalanceDto(
 
         @Schema(description = "account id", example = "1")
         Long id,

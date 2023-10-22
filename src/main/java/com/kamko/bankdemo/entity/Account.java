@@ -5,8 +5,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -26,7 +29,10 @@ public class Account {
 
     private BigDecimal balance;
 
+    @CreationTimestamp(source = SourceType.DB)
+    private LocalDateTime createdAt;
+
     @OneToMany(mappedBy = "account")
-    private List<Transaction> transactions;
+    private List<TransactionLog> transactions;
 
 }

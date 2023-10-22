@@ -1,8 +1,8 @@
 package com.kamko.bankdemo.controller;
 
 import com.kamko.bankdemo.dto.PageResponse;
-import com.kamko.bankdemo.dto.transaction.TransactionDto;
-import com.kamko.bankdemo.service.TransactionService;
+import com.kamko.bankdemo.dto.transaction.TransactionLogDto;
+import com.kamko.bankdemo.service.TransactionLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/v1/transactions")
 @AllArgsConstructor
-@Tag(name = "Transaction")
-public class TransactionController {
+@Tag(name = "TransactionLog")
+public class TransactionLogController {
 
-    private final TransactionService transactionService;
+    private final TransactionLogService transactionService;
 
     @Operation(summary = "get page of account transactions")
     @ApiResponses(value = {
@@ -34,9 +34,9 @@ public class TransactionController {
                     @Content(schema = @Schema(hidden = true))})
     })
     @GetMapping("/{accountId}")
-    public PageResponse<TransactionDto> findAccountTransactions(@PathVariable @Parameter(example = "1") Long accountId,
-                                                               @Parameter(example = "0") Integer pageNumber,
-                                                               @Parameter(example = "0") Integer pageSize) {
+    public PageResponse<TransactionLogDto> findAccountTransactions(@PathVariable @Parameter(example = "1") Long accountId,
+                                                                   @Parameter(example = "0") Integer pageNumber,
+                                                                   @Parameter(example = "0") Integer pageSize) {
         return PageResponse.of(transactionService.findAccountTransactions(accountId, pageNumber, pageSize));
     }
 

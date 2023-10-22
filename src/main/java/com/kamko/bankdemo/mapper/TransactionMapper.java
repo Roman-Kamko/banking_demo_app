@@ -1,7 +1,7 @@
 package com.kamko.bankdemo.mapper;
 
-import com.kamko.bankdemo.dto.transaction.TransactionDto;
-import com.kamko.bankdemo.entity.Transaction;
+import com.kamko.bankdemo.dto.transaction.TransactionLogDto;
+import com.kamko.bankdemo.entity.TransactionLog;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.springframework.stereotype.Component;
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TransactionMapper {
 
-    TransactionDto toDto(Transaction transaction);
+    TransactionLogDto toDto(TransactionLog transaction);
 
 }

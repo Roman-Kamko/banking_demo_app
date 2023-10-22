@@ -1,9 +1,9 @@
 package com.kamko.bankdemo.service;
 
-import com.kamko.bankdemo.dto.transaction.TransactionDto;
+import com.kamko.bankdemo.dto.transaction.TransactionLogDto;
 import com.kamko.bankdemo.entity.Account;
 import com.kamko.bankdemo.entity.Operation;
-import com.kamko.bankdemo.entity.Transaction;
+import com.kamko.bankdemo.entity.TransactionLog;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
 import com.kamko.bankdemo.mapper.TransactionMapper;
 import com.kamko.bankdemo.repo.AccountRepo;
@@ -19,25 +19,25 @@ import java.math.BigDecimal;
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
-public class TransactionService {
+public class TransactionLogService {
 
     private final TransactionRepo transactionRepo;
-    private final AccountRepo accountRepo;
     private final TransactionMapper transactionMapper;
+    private final AccountRepo accountRepo;
 
     @Transactional
     public void logDeposit(Account account, BigDecimal amount) {
-        var transaction = new Transaction(Operation.DEPOSIT, amount, account);
+        var transaction = new TransactionLog(Operation.DEPOSIT, amount, account);
         transactionRepo.save(transaction);
     }
 
     @Transactional
     public void logWithdraw(Account account, BigDecimal amount) {
-        var transaction = new Transaction(Operation.WITHDRAW, amount, account);
+        var transaction = new TransactionLog(Operation.WITHDRAW, amount, account);
         transactionRepo.save(transaction);
     }
 
-    public Page<TransactionDto> findAccountTransactions(Long accountId, Integer pageNum, Integer pageSize) {
+    public Page<TransactionLogDto> findAccountTransactions(Long accountId, Integer pageNum, Integer pageSize) {
         if (!accountRepo.existsById(accountId)) {
             throw new AccountNotFoundException(accountId);
         }

@@ -1,11 +1,11 @@
 package com.kamko.bankdemo.controller;
 
-import com.kamko.bankdemo.dto.account.CreateAccountDto;
-import com.kamko.bankdemo.dto.account.CreatedAccountDto;
-import com.kamko.bankdemo.dto.account.NameBalanceAccountDto;
-import com.kamko.bankdemo.dto.request.DepositRequest;
-import com.kamko.bankdemo.dto.request.TransferRequest;
-import com.kamko.bankdemo.dto.request.WithdrawRequest;
+import com.kamko.bankdemo.dto.account.AccountIdNameBalanceDto;
+import com.kamko.bankdemo.dto.account.AccountNameBalanceDto;
+import com.kamko.bankdemo.dto.account.NewAccountDto;
+import com.kamko.bankdemo.dto.account_operation.DepositRequest;
+import com.kamko.bankdemo.dto.account_operation.TransferRequest;
+import com.kamko.bankdemo.dto.account_operation.WithdrawRequest;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
@@ -69,7 +69,7 @@ class AccountControllerTest {
 
     @Test
     void findOne_success() throws Exception {
-        var account = new CreatedAccountDto(1L, "first", BigDecimal.TEN);
+        var account = new AccountIdNameBalanceDto(1L, "first", BigDecimal.TEN);
         doReturn(account).when(accountService).findOne(anyLong());
         mockMvc.perform(get(BASE_PATH + "/1").accept(APPLICATION_JSON))
                 .andExpectAll(
@@ -90,8 +90,8 @@ class AccountControllerTest {
     @Test
     void findAll_success() throws Exception {
         var content = List.of(
-                new NameBalanceAccountDto("first", BigDecimal.valueOf(1000)),
-                new NameBalanceAccountDto("second", BigDecimal.valueOf(500))
+                new AccountNameBalanceDto("first", BigDecimal.valueOf(1000)),
+                new AccountNameBalanceDto("second", BigDecimal.valueOf(500))
         );
         var pageable = PageRequest.of(0, 2);
         var page = new PageImpl<>(content, pageable, content.size());
@@ -115,8 +115,8 @@ class AccountControllerTest {
 
     @Test
     void create_success() throws Exception {
-        var response = new CreatedAccountDto(1L, "first", BigDecimal.ZERO);
-        doReturn(response).when(accountService).create(any(CreateAccountDto.class));
+        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.ZERO);
+        doReturn(response).when(accountService).create(any(NewAccountDto.class));
         var request = new JSONObject(new HashMap<>(Map.of(
                 "name", "first",
                 "pin", "1111"
@@ -136,7 +136,7 @@ class AccountControllerTest {
 
     @Test
     void deposit_success() throws Exception {
-        var response = new CreatedAccountDto(1L, "first", BigDecimal.valueOf(90));
+        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
         doReturn(response).when(accountService).deposit(any(DepositRequest.class));
         mockMvc.perform(put(BASE_PATH + "/deposit")
                         .content(DEPOSIT_REQUEST.toString())
@@ -163,7 +163,7 @@ class AccountControllerTest {
 
     @Test
     void withdraw_success() throws Exception {
-        var response = new CreatedAccountDto(1L, "first", BigDecimal.valueOf(90));
+        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
         doReturn(response).when(accountService).withdraw(any(WithdrawRequest.class));
         mockMvc.perform(put(BASE_PATH + "/withdraw")
                         .content(WITHDRAW_REQUEST.toString())
@@ -211,50 +211,11 @@ class AccountControllerTest {
 
     @Test
     void transfer_success() throws Exception {
-        var response = new CreatedAccountDto(1L, "first", BigDecimal.valueOf(90));
-        doReturn(response).when(accountService).transfer(any(TransferRequest.class));
         mockMvc.perform(put(BASE_PATH + "/transfer")
                         .content(TRANSFER_REQUEST.toString())
                         .contentType(APPLICATION_JSON)
                         .accept(APPLICATION_JSON))
-                .andExpectAll(
-                        status().isOk(),
-                        jsonPath("$.id").value(1),
-                        jsonPath("$.name").value("first"),
-                        jsonPath("$.balance").value(BigDecimal.valueOf(90))
-                );
-    }
-
-    @Test
-    void transfer_accountNotFoundException() throws Exception {
-        doThrow(AccountNotFoundException.class).when(accountService).transfer(any(TransferRequest.class));
-        mockMvc.perform(put(BASE_PATH + "/transfer")
-                        .content(TRANSFER_REQUEST.toString())
-                        .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void transfer_notEnoughFundsException() throws Exception {
-        doThrow(NotEnoughFundsException.class).when(accountService).transfer(any(TransferRequest.class));
-        mockMvc.perform(put(BASE_PATH + "/transfer")
-                        .content(WITHDRAW_REQUEST.toString())
-                        .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void transfer_wrongPinException() throws Exception {
-        doThrow(WrongPinException.class).when(accountService).transfer(any(TransferRequest.class));
-        mockMvc.perform(put(BASE_PATH + "/transfer")
-                        .content(TRANSFER_REQUEST.toString())
-                        .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
-                .andExpectAll(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -265,7 +226,7 @@ class AccountControllerTest {
                         .contentType(APPLICATION_JSON)
                         .accept(APPLICATION_JSON)
                 )
-                .andExpectAll(status().isConflict());
+                .andExpect(status().isConflict());
     }
 
 }

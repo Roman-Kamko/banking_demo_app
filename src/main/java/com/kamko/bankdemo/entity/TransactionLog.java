@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @NoArgsConstructor
-public class Transaction {
+public class TransactionLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,7 @@ public class Transaction {
     @CreationTimestamp(source = SourceType.DB)
     private LocalDateTime dateTime;
 
-    public Transaction(Operation operation, BigDecimal amount, Account account) {
+    public TransactionLog(Operation operation, BigDecimal amount, Account account) {
         this.operation = operation;
         this.amount = amount;
         this.account = account;

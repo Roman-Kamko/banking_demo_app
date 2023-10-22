@@ -18,7 +18,7 @@ public class ExceptionsHandler {
                 .body(exception.getMessage());
     }
 
-    @ExceptionHandler({EntityCreateException.class, NotEnoughFundsException.class})
+    @ExceptionHandler(NotEnoughFundsException.class)
     public ResponseEntity<?> handleEntityCreateException(RuntimeException exception) {
         log.error(exception.getMessage(), exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
