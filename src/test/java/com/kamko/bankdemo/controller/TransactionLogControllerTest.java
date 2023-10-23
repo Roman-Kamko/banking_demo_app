@@ -3,7 +3,7 @@ package com.kamko.bankdemo.controller;
 import com.kamko.bankdemo.dto.transaction.TransactionLogDto;
 import com.kamko.bankdemo.entity.Operation;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
-import com.kamko.bankdemo.service.TransactionLogService;
+import com.kamko.bankdemo.service.impl.TransactionLogServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TransactionLogControllerTest {
 
     @MockBean
-    private TransactionLogService transactionLogService;
+    private TransactionLogServiceImpl transactionLogService;
 
     @Autowired
     private MockMvc mockMvc;

@@ -2,8 +2,8 @@ package com.kamko.bankdemo.controller;
 
 import com.kamko.bankdemo.dto.PageResponse;
 import com.kamko.bankdemo.dto.account.AccountIdNameBalanceDto;
-import com.kamko.bankdemo.dto.account.NewAccountDto;
 import com.kamko.bankdemo.dto.account.AccountNameBalanceDto;
+import com.kamko.bankdemo.dto.account.NewAccountDto;
 import com.kamko.bankdemo.dto.account_operation.DepositRequest;
 import com.kamko.bankdemo.dto.account_operation.TransferRequest;
 import com.kamko.bankdemo.dto.account_operation.WithdrawRequest;

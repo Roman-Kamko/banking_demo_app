@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface TransactionMapper {
+public interface TransactionLogMapper {
 
     TransactionLogDto toDto(TransactionLog transaction);
 

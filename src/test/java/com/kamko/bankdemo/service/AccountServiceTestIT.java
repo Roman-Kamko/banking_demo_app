@@ -10,6 +10,7 @@ import com.kamko.bankdemo.exception.AccountNotFoundException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
 import com.kamko.bankdemo.exception.WrongPinException;
+import com.kamko.bankdemo.service.impl.AccountServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 class AccountServiceTestIT {
 
     @Autowired
-    private AccountService accountService;
+    private AccountServiceImpl accountService;
 
     @Test
     void findById_success() {

@@ -5,10 +5,14 @@ import com.kamko.bankdemo.dto.account.NewAccountDto;
 import com.kamko.bankdemo.dto.account_operation.TransferRequest;
 import com.kamko.bankdemo.entity.Account;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
+import com.kamko.bankdemo.exception.EntityConvertingException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
 import com.kamko.bankdemo.mapper.AccountMapper;
 import com.kamko.bankdemo.repo.AccountRepo;
+import com.kamko.bankdemo.service.impl.AccountServiceImpl;
+import com.kamko.bankdemo.service.impl.SecurityServiceImpl;
+import com.kamko.bankdemo.service.impl.TransactionLogServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,11 +40,11 @@ class AccountServiceTest {
     @Mock
     private AccountMapper accountMapper;
     @Mock
-    private SecurityService securityService;
+    private SecurityServiceImpl securityService;
     @Mock
-    private TransactionLogService transactionService;
+    private TransactionLogServiceImpl transactionService;
     @InjectMocks
-    private AccountService accountService;
+    private AccountServiceImpl accountService;
 
     @Test
     void findOne_success() {
@@ -142,6 +146,12 @@ class AccountServiceTest {
         doReturn(Optional.of(ACCOUNT)).when(accountRepo).findById(anyLong());
         assertThatExceptionOfType(NotEnoughFundsException.class)
                 .isThrownBy(() -> accountService.withdraw(WRONG_AMOUNT_WITHDRAW_REQUEST));
+    }
+
+    @Test
+    void entityCreateException() {
+        doReturn(null).when(accountMapper).toEntity(any(NewAccountDto.class));
+        assertThatExceptionOfType(EntityConvertingException.class).isThrownBy(() -> accountService.create(new NewAccountDto("qwe", "1111")));
     }
 
 }

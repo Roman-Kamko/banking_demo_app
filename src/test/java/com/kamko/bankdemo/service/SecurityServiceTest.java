@@ -1,6 +1,7 @@
 package com.kamko.bankdemo.service;
 
 import com.kamko.bankdemo.exception.WrongPinException;
+import com.kamko.bankdemo.service.impl.SecurityServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +21,7 @@ class SecurityServiceTest {
     @Mock
     private PasswordEncoder encoder;
     @InjectMocks
-    private SecurityService securityService;
+    private SecurityServiceImpl securityService;
 
     private static final String CORRECT_PIN = "1111";
     private static final String WRONG_PIN = "1112";

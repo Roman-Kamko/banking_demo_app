@@ -3,9 +3,10 @@ package com.kamko.bankdemo.service;
 import com.kamko.bankdemo.dto.transaction.TransactionLogDto;
 import com.kamko.bankdemo.entity.TransactionLog;
 import com.kamko.bankdemo.exception.AccountNotFoundException;
-import com.kamko.bankdemo.mapper.TransactionMapper;
+import com.kamko.bankdemo.mapper.TransactionLogMapper;
 import com.kamko.bankdemo.repo.AccountRepo;
-import com.kamko.bankdemo.repo.TransactionRepo;
+import com.kamko.bankdemo.repo.TransactionLogRepo;
+import com.kamko.bankdemo.service.impl.TransactionLogServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,11 +32,11 @@ class TransactionServiceTest {
     @Mock
     private AccountRepo accountRepo;
     @Mock
-    private TransactionMapper transactionMapper;
+    private TransactionLogMapper transactionMapper;
     @Mock
-    private TransactionRepo transactionRepo;
+    private TransactionLogRepo transactionRepo;
     @InjectMocks
-    private TransactionLogService transactionService;
+    private TransactionLogServiceImpl transactionService;
 
     @Test
     void logDeposit_success() {

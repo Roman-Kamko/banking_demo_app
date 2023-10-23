@@ -10,7 +10,7 @@ import com.kamko.bankdemo.exception.AccountNotFoundException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
 import com.kamko.bankdemo.exception.WrongPinException;
-import com.kamko.bankdemo.service.AccountService;
+import com.kamko.bankdemo.service.impl.AccountServiceImpl;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class AccountControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AccountService accountService;
+    private AccountServiceImpl accountService;
 
     private static final String BASE_PATH = "/api/v1/accounts";
     private static JSONObject DEPOSIT_REQUEST;
