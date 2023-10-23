@@ -97,10 +97,9 @@ class AccountControllerTest {
         var page = new PageImpl<>(content, pageable, content.size());
         doReturn(page).when(accountService).findAll(anyInt(), anyInt());
         mockMvc.perform(get(BASE_PATH)
-                        .accept(APPLICATION_JSON)
                         .param("pageNumber", "0")
-                        .param("pageSize", "1")
-                )
+                        .param("pageSize", "2")
+                        .accept(APPLICATION_JSON))
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.content[0].name").value("first"),
@@ -124,8 +123,7 @@ class AccountControllerTest {
         mockMvc.perform(post(BASE_PATH)
                         .content(request.toString())
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
+                        .accept(APPLICATION_JSON))
                 .andExpectAll(
                         status().isCreated(),
                         jsonPath("$.id").value(1),
@@ -141,8 +139,7 @@ class AccountControllerTest {
         mockMvc.perform(put(BASE_PATH + "/deposit")
                         .content(DEPOSIT_REQUEST.toString())
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
+                        .accept(APPLICATION_JSON))
                 .andExpectAll(
                         status().isOk(),
                         jsonPath("$.id").value(1),
@@ -193,8 +190,7 @@ class AccountControllerTest {
         mockMvc.perform(put(BASE_PATH + "/withdraw")
                         .content(WITHDRAW_REQUEST.toString())
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
+                        .accept(APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -204,9 +200,8 @@ class AccountControllerTest {
         mockMvc.perform(put(BASE_PATH + "/withdraw")
                         .content(WITHDRAW_REQUEST.toString())
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
-                .andExpectAll(status().isUnauthorized());
+                        .accept(APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -224,8 +219,7 @@ class AccountControllerTest {
         mockMvc.perform(put(BASE_PATH + "/transfer")
                         .content(TRANSFER_REQUEST.toString())
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
+                        .accept(APPLICATION_JSON))
                 .andExpect(status().isConflict());
     }
 

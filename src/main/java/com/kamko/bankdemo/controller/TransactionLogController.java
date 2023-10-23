@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/transactions")
+@RequestMapping("api/v1/transaction-logs")
 @AllArgsConstructor
 @Tag(name = "TransactionLog")
 public class TransactionLogController {
@@ -36,7 +36,7 @@ public class TransactionLogController {
     @GetMapping("/{accountId}")
     public PageResponse<TransactionLogDto> findAccountTransactions(@PathVariable @Parameter(example = "1") Long accountId,
                                                                    @Parameter(example = "0") Integer pageNumber,
-                                                                   @Parameter(example = "0") Integer pageSize) {
+                                                                   @Parameter(example = "5") Integer pageSize) {
         return PageResponse.of(transactionService.findAccountTransactions(accountId, pageNumber, pageSize));
     }
 
