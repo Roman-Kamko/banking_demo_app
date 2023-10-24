@@ -37,8 +37,8 @@ class TransactionLogControllerTest {
 
     @Test
     void findAccountTransactions_success() throws Exception {
-        var dateTime = LocalDateTime.of(2023, 1, 1, 10, 0);
-        var content = List.of(
+        LocalDateTime dateTime = LocalDateTime.of(2023, 1, 1, 10, 0);
+        List<TransactionLogDto> content = List.of(
                 new TransactionLogDto(Operation.DEPOSIT, BigDecimal.TEN, dateTime),
                 new TransactionLogDto(Operation.WITHDRAW, BigDecimal.TEN, dateTime)
         );

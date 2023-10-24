@@ -24,7 +24,7 @@ public class PreparedData {
     public static final List<Account> PAGE_CONTENT = preparePageContent();
 
     private static Account prepareAccount() {
-        var account = new Account();
+        Account account = new Account();
         account.setId(1L);
         account.setName("first");
         account.setBalance(BigDecimal.valueOf(200));

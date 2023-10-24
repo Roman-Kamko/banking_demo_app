@@ -1,6 +1,7 @@
 package com.kamko.bankdemo.service;
 
 import com.kamko.bankdemo.dto.account.AccountIdNameBalanceDto;
+import com.kamko.bankdemo.dto.account.AccountNameBalanceDto;
 import com.kamko.bankdemo.dto.account.NewAccountDto;
 import com.kamko.bankdemo.dto.account_operation.TransferRequest;
 import com.kamko.bankdemo.entity.Account;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
@@ -47,22 +49,10 @@ class AccountServiceTest {
     private AccountServiceImpl accountService;
 
     @Test
-    void findOne_success() {
-        doReturn(Optional.of(ACCOUNT)).when(accountRepo).findById(anyLong());
-        doReturn(ACCOUNT_RESPONSE).when(accountMapper).toIdNameBalance(any(Account.class));
-        var actual = accountService.findOne(1L);
-        assertAll(
-                () -> assertThat(actual).isNotNull().isEqualTo(ACCOUNT_RESPONSE),
-                () -> verify(accountRepo, only()).findById(anyLong()),
-                () -> verify(accountMapper, only()).toIdNameBalance(any(Account.class))
-        );
-    }
-
-    @Test
     void findAll_success() {
         doReturn(new PageImpl<>(PAGE_CONTENT)).when(accountRepo).findAll(any(Pageable.class));
         doReturn(NAME_BALANCE_ACCOUNT_RESPONSE).when(accountMapper).toNameBalance(any(Account.class));
-        var actualResult = accountService.findAll(0, 2);
+        Page<AccountNameBalanceDto> actualResult = accountService.findAll(0, 2);
         assertAll(
                 () -> assertThat(actualResult.getContent()).isNotEmpty().containsExactly(NAME_BALANCE_ACCOUNT_RESPONSE),
                 () -> assertThat(actualResult.getTotalElements()).isEqualTo(1),
@@ -77,7 +67,7 @@ class AccountServiceTest {
         doReturn("1111").when(securityService).encode(anyString());
         doReturn(ACCOUNT).when(accountRepo).save(any(Account.class));
         doReturn(ACCOUNT_RESPONSE).when(accountMapper).toIdNameBalance(any(Account.class));
-        var accountRequest = new NewAccountDto("first", "1111");
+        NewAccountDto accountRequest = new NewAccountDto("first", "1111");
         assertAll(
                 () -> assertThat(accountService.create(accountRequest)).isEqualTo(ACCOUNT_RESPONSE),
                 () -> verify(accountMapper, times(1)).toEntity(accountRequest),
@@ -92,8 +82,6 @@ class AccountServiceTest {
         doReturn(Optional.empty()).when(accountRepo).findById(anyLong());
         assertAll(
                 () -> assertThatExceptionOfType(AccountNotFoundException.class)
-                        .isThrownBy(() -> accountService.findOne(1L)),
-                () -> assertThatExceptionOfType(AccountNotFoundException.class)
                         .isThrownBy(() -> accountService.deposit(DEPOSIT_REQUEST)),
                 () -> assertThatExceptionOfType(AccountNotFoundException.class)
                         .isThrownBy(() -> accountService.withdraw(WITHDRAW_REQUEST))
@@ -104,7 +92,7 @@ class AccountServiceTest {
     void deposit_success() {
         doReturn(Optional.of(ACCOUNT)).when(accountRepo).findById(anyLong());
         doReturn(ACCOUNT).when(accountRepo).saveAndFlush(any(Account.class));
-        var result =
+        AccountIdNameBalanceDto result =
                 new AccountIdNameBalanceDto(ACCOUNT.getId(), ACCOUNT.getName(),
                         ACCOUNT.getBalance().add(DEPOSIT_REQUEST.amount()));
         doReturn(result).when(accountMapper).toIdNameBalance(any(Account.class));
@@ -120,7 +108,7 @@ class AccountServiceTest {
     void withdraw_success() {
         doReturn(Optional.of(ACCOUNT)).when(accountRepo).findById(anyLong());
         doReturn(ACCOUNT).when(accountRepo).saveAndFlush(any(Account.class));
-        var result =
+        AccountIdNameBalanceDto result =
                 new AccountIdNameBalanceDto(ACCOUNT.getId(), ACCOUNT.getName(),
                         ACCOUNT.getBalance().subtract(WITHDRAW_REQUEST.amount()));
         doReturn(result).when(accountMapper).toIdNameBalance(any(Account.class));
@@ -135,7 +123,7 @@ class AccountServiceTest {
 
     @Test
     void idMatchingException() {
-        var wrongTransferRequest =
+        TransferRequest wrongTransferRequest =
                 new TransferRequest(ACCOUNT.getId(), ACCOUNT.getId(), BigDecimal.TEN, ACCOUNT.getPin());
         assertThatExceptionOfType(IdMatchingException.class)
                 .isThrownBy(() -> accountService.transfer(wrongTransferRequest));

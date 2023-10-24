@@ -22,6 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @RequestMapping("api/v1/accounts")
 @RequiredArgsConstructor
@@ -29,19 +31,6 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
 
     private final AccountService accountService;
-
-    @Operation(summary = "get account by id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema =
-                    @Schema(implementation = AccountIdNameBalanceDto.class))}),
-            @ApiResponse(responseCode = "404", description = "Not found", content = {
-                    @Content(schema = @Schema(hidden = true))})
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<AccountIdNameBalanceDto> findOne(@PathVariable @Parameter(description = "account id", example = "1") Long id) {
-        return ResponseEntity.ok(accountService.findOne(id));
-    }
 
     @Operation(summary = "get page of accounts")
     @ApiResponse(responseCode = "200", description = "OK", content = {
@@ -74,8 +63,8 @@ public class AccountController {
                     @Content(schema = @Schema(hidden = true))})
     })
     @PutMapping("/deposit")
-    public ResponseEntity<AccountIdNameBalanceDto> deposit(@RequestBody @Validated DepositRequest depositRequest) {
-        return ResponseEntity.ok(accountService.deposit(depositRequest));
+    public AccountIdNameBalanceDto deposit(@RequestBody @Validated DepositRequest depositRequest) throws ExecutionException, InterruptedException {
+        return accountService.deposit(depositRequest);
     }
 
     @Operation(summary = "withdraw funds")
@@ -91,8 +80,8 @@ public class AccountController {
                     @Content(schema = @Schema(hidden = true))})
     })
     @PutMapping("/withdraw")
-    public ResponseEntity<AccountIdNameBalanceDto> withdraw(@RequestBody @Validated WithdrawRequest withdrawRequest) {
-        return ResponseEntity.ok(accountService.withdraw(withdrawRequest));
+    public AccountIdNameBalanceDto withdraw(@RequestBody @Validated WithdrawRequest withdrawRequest) {
+        return accountService.withdraw(withdrawRequest);
     }
 
     @Operation(summary = "transfer funds")

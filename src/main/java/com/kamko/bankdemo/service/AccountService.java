@@ -10,8 +10,6 @@ import org.springframework.data.domain.Page;
 
 public interface AccountService {
 
-    AccountIdNameBalanceDto findOne(Long id);
-
     Page<AccountNameBalanceDto> findAll(Integer pageNum, Integer pageSize);
 
     AccountIdNameBalanceDto create(NewAccountDto newAccountDto);

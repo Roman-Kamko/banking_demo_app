@@ -38,7 +38,7 @@ class SecurityServiceTest {
 
     @Test
     void encode_success() {
-        var result = "1111";
+        String result = "1111";
         doReturn(result).when(encoder).encode(anyString());
         assertAll(
                 () -> assertThat(securityService.encode(CORRECT_PIN)).isEqualTo(result),

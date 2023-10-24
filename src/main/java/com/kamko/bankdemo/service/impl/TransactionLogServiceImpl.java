@@ -29,14 +29,14 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     @Override
     @Transactional
     public void logDeposit(Account account, BigDecimal amount) {
-        var transaction = new TransactionLog(Operation.DEPOSIT, amount, account);
+        TransactionLog transaction = new TransactionLog(Operation.DEPOSIT, amount, account);
         transactionRepo.save(transaction);
     }
 
     @Override
     @Transactional
     public void logWithdraw(Account account, BigDecimal amount) {
-        var transaction = new TransactionLog(Operation.WITHDRAW, amount, account);
+        TransactionLog transaction = new TransactionLog(Operation.WITHDRAW, amount, account);
         transactionRepo.save(transaction);
     }
 

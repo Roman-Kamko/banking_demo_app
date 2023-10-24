@@ -10,10 +10,12 @@ import com.kamko.bankdemo.exception.AccountNotFoundException;
 import com.kamko.bankdemo.exception.IdMatchingException;
 import com.kamko.bankdemo.exception.NotEnoughFundsException;
 import com.kamko.bankdemo.exception.WrongPinException;
+import com.kamko.bankdemo.repo.AccountRepo;
 import com.kamko.bankdemo.service.impl.AccountServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,64 +28,59 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @SpringBootTest
-@Transactional
+@Transactional()
 @Sql("classpath:script/data.sql")
 class AccountServiceTestIT {
 
     @Autowired
     private AccountServiceImpl accountService;
-
-    @Test
-    void findById_success() {
-        var expected = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(1000).setScale(2, HALF_UP));
-        var actual = accountService.findOne(1L);
-        assertThat(actual).isNotNull().isEqualTo(expected);
-    }
+    @Autowired
+    private AccountRepo accountRepo;
 
     @Test
     void findAll_successes() {
-        var expected = List.of(
+        List<AccountNameBalanceDto> expected = List.of(
                 new AccountNameBalanceDto("first", BigDecimal.valueOf(1000).setScale(2, HALF_UP)),
                 new AccountNameBalanceDto("second", BigDecimal.valueOf(500).setScale(2, HALF_UP))
         );
-        var pageNumber = 0;
-        var pageSize = 2;
-        var actual = accountService.findAll(pageNumber, pageSize);
+        int pageNumber = 0;
+        int pageSize = 2;
+        Page<AccountNameBalanceDto> actual = accountService.findAll(pageNumber, pageSize);
         assertThat(actual.getContent()).isNotEmpty().isEqualTo(expected);
     }
 
     @Test
     void create_successes() {
-        var newAccount = new NewAccountDto("name", "1234");
-        var actual = accountService.create(newAccount);
-        var expected = new AccountIdNameBalanceDto(3L, "name", BigDecimal.ZERO);
+        NewAccountDto newAccount = new NewAccountDto("name", "1234");
+        AccountIdNameBalanceDto actual = accountService.create(newAccount);
+        AccountIdNameBalanceDto expected = new AccountIdNameBalanceDto(3L, "name", BigDecimal.ZERO);
         assertThat(actual).isNotNull().isEqualTo(expected);
     }
 
     @Test
     void deposit_successes() {
-        var depositRequest = new DepositRequest(1L, BigDecimal.valueOf(100));
-        var actual = accountService.deposit(depositRequest);
-        var expected = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(1_100).setScale(2, HALF_UP));
+        DepositRequest depositRequest = new DepositRequest(1L, BigDecimal.valueOf(100));
+        AccountIdNameBalanceDto actual = accountService.deposit(depositRequest);
+        AccountIdNameBalanceDto expected = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(1_100).setScale(2, HALF_UP));
         assertThat(actual).isNotNull().isEqualTo(expected);
     }
 
     @Test
     void withdraw_successes() {
-        var withdrawRequest = new WithdrawRequest(1L, BigDecimal.valueOf(100), "1111");
-        var actual = accountService.withdraw(withdrawRequest);
-        var expected = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(900).setScale(2, HALF_UP));
+        WithdrawRequest withdrawRequest = new WithdrawRequest(1L, BigDecimal.valueOf(100), "1111");
+        AccountIdNameBalanceDto actual = accountService.withdraw(withdrawRequest);
+        AccountIdNameBalanceDto expected = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(900).setScale(2, HALF_UP));
         assertThat(actual).isNotNull().isEqualTo(expected);
     }
 
     @Test
     void transfer_successes() {
-        var transferRequest = new TransferRequest(1L, 2L, BigDecimal.valueOf(100), "1111");
+        TransferRequest transferRequest = new TransferRequest(1L, 2L, BigDecimal.valueOf(100), "1111");
         accountService.transfer(transferRequest);
-        var expectedBalanceFromAccount = BigDecimal.valueOf(900).setScale(2, HALF_UP);
-        var expectedBalanceToAccount = BigDecimal.valueOf(600).setScale(2, HALF_UP);
-        var actualBalanceFromAccount = accountService.findOne(1L).balance();
-        var actualBalanceToAccount = accountService.findOne(2L).balance();
+        BigDecimal expectedBalanceFromAccount = BigDecimal.valueOf(900).setScale(2, HALF_UP);
+        BigDecimal expectedBalanceToAccount = BigDecimal.valueOf(600).setScale(2, HALF_UP);
+        BigDecimal actualBalanceFromAccount = accountRepo.findAll().get(0).getBalance();
+        BigDecimal actualBalanceToAccount = accountRepo.findAll().get(1).getBalance();
         assertAll(
                 () -> assertThat(actualBalanceFromAccount).isEqualTo(expectedBalanceFromAccount),
                 () -> assertThat(actualBalanceToAccount).isEqualTo(expectedBalanceToAccount)
@@ -92,12 +89,11 @@ class AccountServiceTestIT {
 
     @Test
     void accountNotFoundException() {
-        var expectedException = AccountNotFoundException.class;
-        var wrongId = 10L;
-        var wrongDepositRequest = new DepositRequest(wrongId, BigDecimal.TEN);
-        var wrongWithdrawRequest = new WithdrawRequest(wrongId, BigDecimal.TEN, "1111");
+        Class<AccountNotFoundException> expectedException = AccountNotFoundException.class;
+        long wrongId = 10L;
+        DepositRequest wrongDepositRequest = new DepositRequest(wrongId, BigDecimal.TEN);
+        WithdrawRequest wrongWithdrawRequest = new WithdrawRequest(wrongId, BigDecimal.TEN, "1111");
         assertAll(
-                () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.findOne(wrongId)),
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.deposit(wrongDepositRequest)),
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(wrongWithdrawRequest))
         );
@@ -105,17 +101,17 @@ class AccountServiceTestIT {
 
     @Test
     void idMatchingException() {
-        var expectedException = IdMatchingException.class;
-        var wrongTransferRequest = new TransferRequest(1L, 1L, BigDecimal.TEN, "1111");
+        Class<IdMatchingException> expectedException = IdMatchingException.class;
+        TransferRequest wrongTransferRequest = new TransferRequest(1L, 1L, BigDecimal.TEN, "1111");
         assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(wrongTransferRequest));
     }
 
     @Test
     void notEnoughFundsException() {
-        var expectedException = NotEnoughFundsException.class;
-        var amount = BigDecimal.valueOf(10_000);
-        var withdrawRequest = new WithdrawRequest(1L, amount, "1111");
-        var transferRequest = new TransferRequest(1L, 2L, amount, "1111");
+        Class<NotEnoughFundsException> expectedException = NotEnoughFundsException.class;
+        BigDecimal amount = BigDecimal.valueOf(10_000);
+        WithdrawRequest withdrawRequest = new WithdrawRequest(1L, amount, "1111");
+        TransferRequest transferRequest = new TransferRequest(1L, 2L, amount, "1111");
         assertAll(
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest)),
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(transferRequest))
@@ -125,14 +121,62 @@ class AccountServiceTestIT {
 
     @Test
     void wrongPinException() {
-        var expectedException = WrongPinException.class;
-        var wrongPin = "1112";
-        var withdrawRequest = new WithdrawRequest(1L, BigDecimal.TEN, wrongPin);
-        var transferRequest = new TransferRequest(1L, 2L, BigDecimal.TEN, wrongPin);
+        Class<WrongPinException> expectedException = WrongPinException.class;
+        String wrongPin = "1112";
+        WithdrawRequest withdrawRequest = new WithdrawRequest(1L, BigDecimal.TEN, wrongPin);
+        TransferRequest transferRequest = new TransferRequest(1L, 2L, BigDecimal.TEN, wrongPin);
         assertAll(
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.withdraw(withdrawRequest)),
                 () -> assertThatExceptionOfType(expectedException).isThrownBy(() -> accountService.transfer(transferRequest))
         );
     }
+
+//    @Test
+//    public void testPessimisticWriteLock() throws InterruptedException {
+//        Account account = new Account();
+//        account.setName("qwe");
+//        account.setPin("1111");
+//        account.setBalance(BigDecimal.TEN);
+//        accountRepo.saveAndFlush(account);
+//
+//        WithdrawRequest withdrawRequest = new WithdrawRequest(3L, BigDecimal.TEN, "1111");
+//
+//        int threadCount = 5;
+//        CyclicBarrier barrier = new CyclicBarrier(threadCount);
+//        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+//        boolean[] operationSuccess = new boolean[threadCount];
+//
+//        for (int i = 0; i < threadCount; i++) {
+//            final int threadIndex = i;
+//            executorService.submit(() -> {
+//                try {
+//                    barrier.await();
+//                    AccountIdNameBalanceDto result = accountService.withdraw(withdrawRequest);
+//                    operationSuccess[threadIndex] = true;
+//                    assertThat(result.balance()).isEqualTo(BigDecimal.ZERO);
+//                } catch (InterruptedException | BrokenBarrierException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            });
+//        }
+//
+//        executorService.shutdown();
+//        executorService.awaitTermination(10, TimeUnit.SECONDS);
+//
+//        var account1 = accountRepo.findById(3L);
+//        System.out.println(account1);
+//
+//        int successCount = 0;
+//        for (boolean success : operationSuccess) {
+//            if (success) {
+//                successCount++;
+//            }
+//        }
+//        assertThat(successCount).isEqualTo(1);
+//
+//        for (int i = 1; i < threadCount; i++) {
+//            assertThat(operationSuccess[i]).isFalse();
+//        }
+//    }
 
 }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ import java.util.Collections;
 import static com.kamko.bankdemo.data.PreparedData.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -55,9 +56,9 @@ class TransactionServiceTest {
     @Test
     void findAccountTransactions_success() {
         doReturn(true).when(accountRepo).existsById(anyLong());
-        var expected = new PageImpl<TransactionLogDto>(Collections.emptyList(), PageRequest.of(0, 2), 0);
+        PageImpl<TransactionLogDto> expected = new PageImpl<TransactionLogDto>(Collections.emptyList(), PageRequest.of(0, 2), 0);
         doReturn(expected).when(transactionRepo).findPageOfTransaction(any(Pageable.class), anyLong());
-        var actual = transactionService.findAccountTransactions(1L, 0, 2);
+        Page<TransactionLogDto> actual = transactionService.findAccountTransactions(1L, 0, 2);
         assertAll(
                 () -> verify(transactionRepo, only()).findPageOfTransaction(any(Pageable.class), anyLong()),
                 () -> assertThat(actual).isNotNull().isEqualTo(expected)

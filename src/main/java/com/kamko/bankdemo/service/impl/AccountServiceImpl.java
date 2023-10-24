@@ -39,13 +39,6 @@ public class AccountServiceImpl implements AccountService {
     private static final int ROUNDING_SCALE = 2;
 
     @Override
-    public AccountIdNameBalanceDto findOne(Long id) {
-        return accountRepo.findById(id)
-                .map(accountMapper::toIdNameBalance)
-                .orElseThrow(() -> new AccountNotFoundException(id));
-    }
-
-    @Override
     public Page<AccountNameBalanceDto> findAll(Integer pageNum, Integer pageSize) {
         return accountRepo.findAll(PageRequest.of(pageNum, pageSize))
                 .map(accountMapper::toNameBalance);
@@ -58,7 +51,6 @@ public class AccountServiceImpl implements AccountService {
                 .map(accountMapper::toEntity)
                 .map(account -> {
                     account.setPin(securityService.encode(newAccountDto.pin()));
-                    account.setBalance(BigDecimal.ZERO);
                     return accountRepo.save(account);
                 })
                 .map(accountMapper::toIdNameBalance)
@@ -68,14 +60,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountIdNameBalanceDto deposit(DepositRequest depositRequest) {
-        var accountId = depositRequest.toAccountId();
-        var amount = depositRequest.amount();
+        Long accountId = depositRequest.toAccountId();
+        BigDecimal amount = depositRequest.amount();
         return accountRepo.findById(accountId)
                 .map(account -> {
                     account.setBalance(increaseBalance(account, amount));
-                    return accountRepo.saveAndFlush(account);
-                })
-                .map(account -> {
+                    accountRepo.saveAndFlush(account);
                     transactionService.logDeposit(account, amount);
                     return accountMapper.toIdNameBalance(account);
                 })
@@ -85,15 +75,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountIdNameBalanceDto withdraw(WithdrawRequest withdrawRequest) {
-        var accountId = withdrawRequest.fromAccountId();
-        var amount = withdrawRequest.amount();
+        Long accountId = withdrawRequest.fromAccountId();
+        BigDecimal amount = withdrawRequest.amount();
         return accountRepo.findById(accountId)
                 .map(account -> {
                     securityService.verifyPin(withdrawRequest.pin(), account.getPin(), accountId);
                     account.setBalance(reduceBalance(account, amount));
-                    return accountRepo.saveAndFlush(account);
-                })
-                .map(account -> {
+                    accountRepo.saveAndFlush(account);
                     transactionService.logWithdraw(account, amount);
                     return accountMapper.toIdNameBalance(account);
                 })
@@ -103,8 +91,8 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public void transfer(TransferRequest transferRequest) {
-        var fromAccountId = transferRequest.fromAccountId();
-        var toAccountId = transferRequest.toAccountId();
+        Long fromAccountId = transferRequest.fromAccountId();
+        Long toAccountId = transferRequest.toAccountId();
         if (Objects.equals(fromAccountId, toAccountId)) {
             throw new IdMatchingException(fromAccountId);
         }
@@ -119,7 +107,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private BigDecimal reduceBalance(Account account, BigDecimal amount) {
-        var currentBalance = account.getBalance();
+        BigDecimal currentBalance = account.getBalance();
         if (currentBalance.compareTo(amount) < 0) {
             throw new NotEnoughFundsException(account, amount);
         }

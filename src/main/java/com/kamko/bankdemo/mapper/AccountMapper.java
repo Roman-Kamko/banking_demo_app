@@ -8,6 +8,7 @@ import com.kamko.bankdemo.dto.account_operation.TransferRequest;
 import com.kamko.bankdemo.dto.account_operation.WithdrawRequest;
 import com.kamko.bankdemo.entity.Account;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AccountMapper {
 
+    @Mapping(target = "balance", expression = "java(BigDecimal.ZERO)")
     Account toEntity(NewAccountDto accountRequest);
 
     AccountIdNameBalanceDto toIdNameBalance(Account account);

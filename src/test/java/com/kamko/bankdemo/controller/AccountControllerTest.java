@@ -68,33 +68,13 @@ class AccountControllerTest {
     }
 
     @Test
-    void findOne_success() throws Exception {
-        var account = new AccountIdNameBalanceDto(1L, "first", BigDecimal.TEN);
-        doReturn(account).when(accountService).findOne(anyLong());
-        mockMvc.perform(get(BASE_PATH + "/1").accept(APPLICATION_JSON))
-                .andExpectAll(
-                        status().isOk(),
-                        jsonPath("$.id").value(1),
-                        jsonPath("$.name").value("first"),
-                        jsonPath("$.balance").value("10")
-                );
-    }
-
-    @Test
-    void findOne_accountNotFoundException() throws Exception {
-        doThrow(AccountNotFoundException.class).when(accountService).findOne(anyLong());
-        mockMvc.perform(get(BASE_PATH + "/1").accept(APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     void findAll_success() throws Exception {
-        var content = List.of(
+        List<AccountNameBalanceDto> content = List.of(
                 new AccountNameBalanceDto("first", BigDecimal.valueOf(1000)),
                 new AccountNameBalanceDto("second", BigDecimal.valueOf(500))
         );
-        var pageable = PageRequest.of(0, 2);
-        var page = new PageImpl<>(content, pageable, content.size());
+        PageRequest pageable = PageRequest.of(0, 2);
+        PageImpl<AccountNameBalanceDto> page = new PageImpl<>(content, pageable, content.size());
         doReturn(page).when(accountService).findAll(anyInt(), anyInt());
         mockMvc.perform(get(BASE_PATH)
                         .param("pageNumber", "0")
@@ -114,9 +94,9 @@ class AccountControllerTest {
 
     @Test
     void create_success() throws Exception {
-        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.ZERO);
+        AccountIdNameBalanceDto response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.ZERO);
         doReturn(response).when(accountService).create(any(NewAccountDto.class));
-        var request = new JSONObject(new HashMap<>(Map.of(
+        JSONObject request = new JSONObject(new HashMap<>(Map.of(
                 "name", "first",
                 "pin", "1111"
         )));
@@ -134,7 +114,7 @@ class AccountControllerTest {
 
     @Test
     void deposit_success() throws Exception {
-        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
+        AccountIdNameBalanceDto response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
         doReturn(response).when(accountService).deposit(any(DepositRequest.class));
         mockMvc.perform(put(BASE_PATH + "/deposit")
                         .content(DEPOSIT_REQUEST.toString())
@@ -160,7 +140,7 @@ class AccountControllerTest {
 
     @Test
     void withdraw_success() throws Exception {
-        var response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
+        AccountIdNameBalanceDto response = new AccountIdNameBalanceDto(1L, "first", BigDecimal.valueOf(90));
         doReturn(response).when(accountService).withdraw(any(WithdrawRequest.class));
         mockMvc.perform(put(BASE_PATH + "/withdraw")
                         .content(WITHDRAW_REQUEST.toString())

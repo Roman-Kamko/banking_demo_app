@@ -2,6 +2,7 @@ package com.kamko.bankdemo.service;
 
 import com.kamko.bankdemo.entity.Account;
 import com.kamko.bankdemo.entity.Operation;
+import com.kamko.bankdemo.entity.TransactionLog;
 import com.kamko.bankdemo.repo.AccountRepo;
 import com.kamko.bankdemo.repo.TransactionLogRepo;
 import com.kamko.bankdemo.service.impl.TransactionLogServiceImpl;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -28,12 +30,12 @@ class TransactionLogServiceTestIT {
 
     @Test
     public void logDeposit_success() {
-        var account = createTestAccount();
-        var amount = BigDecimal.valueOf(100);
+        Account account = createTestAccount();
+        BigDecimal amount = BigDecimal.valueOf(100);
         accountRepo.saveAndFlush(account);
         transactionLogService.logDeposit(account, amount);
         assertThat(transactionRepo.findAll()).hasSize(1);
-        var savedTransaction = transactionRepo.findById(1L);
+        Optional<TransactionLog> savedTransaction = transactionRepo.findById(1L);
         savedTransaction.ifPresent(transactionLog ->
                 assertAll(
                         () -> assertThat(transactionLog.getOperation()).isEqualTo(Operation.DEPOSIT),
@@ -45,12 +47,12 @@ class TransactionLogServiceTestIT {
 
     @Test
     public void logWithdraw_success() {
-        var account = createTestAccount();
-        var amount = BigDecimal.valueOf(50);
+        Account account = createTestAccount();
+        BigDecimal amount = BigDecimal.valueOf(50);
         accountRepo.saveAndFlush(account);
         transactionLogService.logWithdraw(account, amount);
         assertThat(transactionRepo.findAll()).hasSize(1);
-        var savedTransaction = transactionRepo.findById(1L);
+        Optional<TransactionLog> savedTransaction = transactionRepo.findById(1L);
         savedTransaction.ifPresent(transactionLog ->
                 assertAll(
                         () -> assertThat(transactionLog.getOperation()).isEqualTo(Operation.WITHDRAW),
@@ -62,9 +64,9 @@ class TransactionLogServiceTestIT {
 
     @Test
     public void findAccountTransactions_success() {
-        var account = createTestAccount();
-        var depositAmount = BigDecimal.valueOf(100);
-        var withdrawAmount = BigDecimal.valueOf(50);
+        Account account = createTestAccount();
+        BigDecimal depositAmount = BigDecimal.valueOf(100);
+        BigDecimal withdrawAmount = BigDecimal.valueOf(50);
 
         accountRepo.saveAndFlush(account);
         transactionLogService.logDeposit(account, depositAmount);
@@ -78,7 +80,7 @@ class TransactionLogServiceTestIT {
     }
 
     private Account createTestAccount() {
-        var account = new Account();
+        Account account = new Account();
         account.setName("first");
         account.setBalance(BigDecimal.ZERO);
         return account;
