@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: liquibase/table/db.changelog-account-1.0.sql
+  - include:
+      file: liquibase/table/db.changelog-transaction-log-1.0.sql

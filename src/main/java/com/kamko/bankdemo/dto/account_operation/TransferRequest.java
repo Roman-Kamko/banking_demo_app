@@ -13,12 +13,12 @@ public record TransferRequest(
 
         @NotNull
         @Positive
-        @Schema(description = "Account ID for debiting funds", example = "2")
+        @Schema(description = "Account ID for debiting funds", example = "1")
         Long fromAccountId,
 
         @NotNull
         @Positive
-        @Schema(description = "ID of the account being replenished", example = "1")
+        @Schema(description = "ID of the account being replenished", example = "2")
         Long toAccountId,
 
         @NotNull

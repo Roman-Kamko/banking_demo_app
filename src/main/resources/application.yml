@@ -6,7 +6,7 @@ spring:
     open-in-view: false
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties.hibernate:
       show_sql: true
       format_sql: true
@@ -14,4 +14,10 @@ spring:
     enabled: true
     settings.web-allow-others: true
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: liquibase/db.changelog-master.yml
+logging:
+  file:
+    name: log/logfile.log
+  level:
+    com.kamko.bankdemo.handler: error
